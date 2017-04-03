@@ -24,6 +24,7 @@ abstract class AbstractMySQLComponent implements LoggerAwareInterface
      * Defined keys for $connectionParameters
      * @const string
      */
+    const CONNECTION_DNS = 'dns';
     const CONNECTION_HOST_PARAMETER = 'hostname';
     const CONNECTION_PORT_PARAMETER = 'port';
     const CONNECTION_DATABASE_PARAMETER = 'database';
@@ -46,17 +47,37 @@ abstract class AbstractMySQLComponent implements LoggerAwareInterface
     private $logger;
 
     /**
+     * @var array
+     */
+    private $connectionDetails;
+
+    /**
      * @param array  $connectionParameters
      * @param string $tableName
      */
     protected function build(array $connectionParameters, string $tableName)
     {
         $this->tableName = $tableName;
-        $this->connection = new \PDO(
-            $this->composeDns($connectionParameters),
-            $connectionParameters[static::CONNECTION_USERNAME_PARAMETER],
-            $connectionParameters[static::CONNECTION_PASSWORD_PARAMETER]
-        );
+        $this->connectionDetails = [
+            static::CONNECTION_DNS => $this->composeDns($connectionParameters),
+            static::CONNECTION_USERNAME_PARAMETER => $connectionParameters[static::CONNECTION_USERNAME_PARAMETER],
+            static::CONNECTION_PASSWORD_PARAMETER => $connectionParameters[static::CONNECTION_PASSWORD_PARAMETER]
+        ];
+    }
+
+    /**
+     * @return \PDO
+     */
+    protected function getConnection(): \PDO
+    {
+        if (is_null($this->connection)) {
+            $this->connection = new \PDO(
+                $this->connectionDetails[static::CONNECTION_DNS],
+                $this->connectionDetails[static::CONNECTION_USERNAME_PARAMETER],
+                $this->connectionDetails[static::CONNECTION_PASSWORD_PARAMETER]
+            );
+        }
+        return $this->connection;
     }
 
     /**
@@ -91,14 +112,6 @@ abstract class AbstractMySQLComponent implements LoggerAwareInterface
     }
 
     /**
-     * @return \PDO
-     */
-    protected function getConnection(): \PDO
-    {
-        return $this->connection;
-    }
-
-    /**
      * @return string
      */
     protected function getTableName(): string
@@ -114,7 +127,7 @@ abstract class AbstractMySQLComponent implements LoggerAwareInterface
     protected function fetchQueryResult(string $query): array
     {
         $startTime = microtime(true);
-        $result = $this->connection
+        $result = $this->getConnection()
             ->query(
                 $query
             )->fetchAll(\PDO::FETCH_ASSOC);

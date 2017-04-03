@@ -176,13 +176,13 @@ class ConsoleLoggerBridge implements LoggerInterface
                 if (false === $this->output->isVerbose()) {
                     return;
                 }
-                $prependMessage .= "<warning>[ " . strtoupper($level) . " ]</warning> ";
+                $prependMessage .= "<error>[ " . strtoupper($level) . " ]</error> ";
                 break;
             case LogLevel::DEBUG:
                 if (false === $this->output->isVeryVerbose()) {
                     return;
                 }
-                $prependMessage .= "<info>[ " . strtoupper($level) . " ]</warning> ";
+                $prependMessage .= "<info>[ " . strtoupper($level) . " ]</info> ";
                 break;
             default:
                 $prependMessage .= "<info>[ " . strtoupper($level) . " ]</info> ";

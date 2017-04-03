@@ -85,7 +85,11 @@ class SourceBuilder
             $filters = [];
             foreach ($tempFilter as $line) {
                 foreach ($line as $field => $value) {
-                    $filters[] = "{$field} = \"{$value}\"";
+                    if (!is_array($value)) {
+                        $filters[] = "{$field} = \"{$value}\"";
+                    } else {
+                        $filters[] = "{$field} IN(" . implode(',', $value) . ')';
+                    }
                 }
             }
             $filters = ' WHERE ' . implode(' AND ', $filters);
