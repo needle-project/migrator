@@ -51,7 +51,9 @@ class SourceBuilder
             $join,
             $filters,
             $fields,
-            $sourceConfig['parameters']['order_query']
+            isset($sourceConfig['parameters']['order_query']) ?
+                $sourceConfig['parameters']['order_query'] :
+                ''
         );
         $source->setChunkSize($sourceConfig['chunk_size']);
         $source->setLogger($this->logger);
@@ -62,11 +64,14 @@ class SourceBuilder
     {
         $config = $sourceConfig['connection'];
         $tableName = $sourceConfig['connection']['table'];
-        $join = $sourceConfig['parameters']['join'];
-
+        $join = isset($sourceConfig['parameters']['join']) ?
+            $sourceConfig['parameters']['join'] :
+            '';
 
         $fields = [];
-        $joinFields = $sourceConfig['parameters']['join_fields'];
+        $joinFields = isset($sourceConfig['parameters']['join_fields']) ?
+            $sourceConfig['parameters']['join_fields'] :
+            [];
         if (!empty($joinFields)) {
             foreach ($joinFields as $tableField => $fieldAlias) {
                 $fields[$fieldAlias] = $tableField;
@@ -80,6 +85,7 @@ class SourceBuilder
         }
         $fields = implode(", ", $fields);
 
+        $filters = '';
         if (isset($sourceConfig['parameters']['filters'])) {
             $tempFilter = $sourceConfig['parameters']['filters'];
             $filters = [];
@@ -93,6 +99,9 @@ class SourceBuilder
                 }
             }
             $filters = ' WHERE ' . implode(' AND ', $filters);
+        }
+        if (isset($sourceConfig['parameters']['query_filter']) && $filters === '') {
+            $filters = " WHERE " . $sourceConfig['parameters']['query_filter'];
         }
         return [
             $config, $tableName, $join, $filters, $fields
